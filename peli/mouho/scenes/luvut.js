@@ -2,7 +2,7 @@
 "use strict";
 // MI2 alkaa Guybrushin roikkuessa köydessä ja kertoessa Elainelle, miten siihen päädyttiin, ja
 // jakautuu osiin otsikkoruuduin ("Part One: The Largo Embargo"). Täällä Jussi kertoo tarinansa
-// Mouhon hallitukselle haastattelussa 20.11.: peli alkaa siitä (coldOpen), hallitus kommentoi
+// Mouhon hallitukselle haastattelussa myöhäissyksyllä: peli alkaa siitä (coldOpen), hallitus kommentoi
 // lukujen välissä, ja loppukohtaus palaa samaan huoneeseen (scenes/loppu.js).
 const CHAPTERS = {
   1: { num: "I", title: "Pyramidi Kisapuistossa", art: () => kisaDraw(0),
@@ -36,11 +36,11 @@ async function chapter(n) {
   callSpk = null; await sleep(500); overlay = prev;
 }
 
-// Kylmä aloitus: Mouho-ilta 20.11., haastattelu alkaa, ja Jussi alkaa kertoa.
+// Kylmä aloitus: Mouho-ilta myöhäissyksyllä, haastattelu alkaa, ja Jussi alkaa kertoa.
 async function coldOpen() {
   overlay = (t) => { mouhoInDraw(t); boardTable(t); shadow(176, 128, 7); jussi(176, 128, 1, 0, {}); };      // Jussi kääntyy hallitukseen päin
   callSpk = { jussi: { x: 176, y: 78, c: "#c8a460" } };
-  await say("Helsinki, 20.11.2026. Kaivokatu 10, neljäs kerros. Mouho-ilta, jossa haetaan Mouho 2027:n toiminnanjohtajaa.", "muu");
+  await say("Helsinki, myöhäissyksy. Kaivokatu 10, neljäs kerros. Mouho-ilta, jossa haetaan Mouho 2027:n toiminnanjohtajaa.", "muu");
   await say("Hallitus: \"Toiminnanjohtajan haastattelu. Hakija Markkanen. Hakemuksessanne on... aika paljon liitteitä.\"", "muu");
   await say("Hallitus: \"Kertokaa omin sanoin: miten te päädyitte tänne?\"", "muu");
   await say("Se on pitkä tarina. Siinä on basaari, temppeli, haamu ja yksi viisikymppinen.");

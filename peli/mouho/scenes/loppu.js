@@ -121,7 +121,7 @@ function kaivokatuWalk(t, jx, idol) {
   r(300, 112, 6, 6, "#14142a"); r(299, 110, 3, 4, "#14142a"); r(299, 108, 1, 2, "#14142a"); r(301, 108, 1, 2, "#14142a"); r(305, 116, 3, 2, "#14142a"); r(Math.round(307 + Math.sin(t / 500)), 112, 1, 4, "#14142a");
   g.restore();
   parallax(KK_FRONT, cam, t, KK_W);
-  weather("snow", t, { n: 70, wind: -6 });                // Helsinki, marraskuu: ensilumi (fx.js)
+  weather("snow", t, { n: 70, wind: -6 });                // Helsinki, myöhäissyksy: ensilumi (fx.js)
   return cam;
 }
 
@@ -234,7 +234,7 @@ async function ending() {
   let jx = 20; const T0 = performance.now(), speed = TEST ? 600 : 62;
   overlay = (t) => { jx = Math.min(KK_END, 20 + (performance.now() - T0) / 1000 * speed); kaivokatuWalk(t, jx, true); };
   callSpk = { get jussi() { return { x: Math.max(30, jx - camFollow(jx, KK_W)), y: 72, c: "#c8a460" }; } };   // kupla kävelevän Jussin päälle
-  await say("Helsinki, marraskuu. Kaivokatu, rautatieaseman kulmilla.", "muu");
+  await say("Helsinki, myöhäissyksy. Ensilumi. Kaivokatu, rautatieaseman kulmilla.", "muu");
   await say("Mouho-ilta ja toiminnanjohtajan haastattelut. Jäsenet, tarjoilu, turnaus: kaikki hoidettu.");
   await say("Ja kutsuin kaikki jäseneni paikalle. Hallitus näkee omin silmin, mitä proaktiivisuus saa aikaan.");
   await say("Kaivokatu 10. Neljännessä kerroksessa valot palavat.", "muu");

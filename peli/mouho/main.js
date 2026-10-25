@@ -7,9 +7,9 @@ startEngine({
   titleScreen: drawTitle, startRoom: "koti", startX: LAND[0], hint,
   intro: async () => {
     give("puhelin");
-    await coldOpen();                            // kehyskertomus: haastattelu 20.11., Jussi alkaa kertoa (scenes/luvut.js)
+    await coldOpen();                            // kehyskertomus: haastattelu myöhäissyksyllä, Jussi alkaa kertoa (scenes/luvut.js)
     await prologue(); give("nimikyltti"); await chapter(1);
-    await say("Lappeenranta, lokakuu 2026. Kisapuisto, SaiPan kotihalli.", "muu");
+    await say("Lappeenranta, sama syksy. Kisapuisto, SaiPan kotihalli.", "muu");
     await say("Potku lennätti minut sinne, mistä kaikki alkoi. Täällä minut sentään vielä tunnetaan.");
     await saarniScene(); },
 });

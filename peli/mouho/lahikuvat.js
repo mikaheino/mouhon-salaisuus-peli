@@ -20,7 +20,7 @@ function adCloseUp(t) {
   text3("TEHTÄVÄT:", x + 12, y + 46, "#3c3020");
   ["MOUHO 2027 -TURNAUS", "JÄSENTEN HANKINTA", "TARJOILU"].forEach((s, i) => { r(x + 14, y + 55 + i * 8, 2, 2, "#c81c1c"); text3(s, x + 20, y + 54 + i * 8, "#3c3020"); });
   r(x + 10, y + 80, w - 20, 1, "#c8b890");
-  textC("HAASTATTELUT MOUHO-ILLASSA", x + w / 2, y + 84, "#3c3020"); textC("KAIVOKATU 10, 20.11.", x + w / 2, y + 91, "#3c3020");
+  textC("HAASTATTELUT MOUHO-ILLASSA", x + w / 2, y + 84, "#3c3020"); textC("KAIVOKATU 10, SYKSYLLÄ", x + w / 2, y + 91, "#3c3020");
   r(x + 30, y + 98, w - 60, 7, "#2c7c2c"); textC("OSALLISTUMINEN ILMAISTA!", x + w / 2, y + 99, "#d8f4c8");
   if (st.flags.pyramid) { g.save(); g.globalAlpha = .9; for (let k = 0; k < 3; k++) lineC(x + w - 40 + k * 6, y + 70 - k * 9, x + w - 16 - k * 6, y + 70 - k * 9, "#2c2cb8"); g.restore(); }   // Jussin kuulakärkipyramidi kulmassa
 }

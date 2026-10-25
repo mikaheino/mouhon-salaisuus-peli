@@ -103,7 +103,13 @@ const VALTONEN = { id: "valtonen", x: 120, y: 108, h: 46, color: "#f4c090", movi
 // harjoittelee puhetta; Portti 1 vie Istanbuliin, ulko-ovesta taksilla takaisin Kisapuistoon.
 defineRoom("lentoasema", {
   title: "Lappeenrannan lentoasema, lähtöaula", scale: [86, 136, 0.6, 1.06], start: 122,
-  walk: [[[14, 92], [300, 92], [318, 136], [2, 136]]],
+  // Penkkirivi (x 154-262, jalat y 98-108) on este: kävelyalue kiertää sen, ja takana (y 92-98) Jussi jää
+  // penkin taakse (penkki on propina y 104). Backlog 10 d:n jatkoidea, 25.10.
+  walk: [[[14, 92], [300, 92], [302.4, 98], [12.4, 98]], [[12.4, 98], [154, 98], [154, 108], [9.6, 108]],
+    [[262, 98], [302.4, 98], [306.5, 108], [262, 108]], [[9.6, 108], [306.5, 108], [318, 136], [2, 136]]],
+  // ensimmäinen pysähdys penkkien takana: pieni huomio (MI2:n tapaan palkinto uteliaisuudesta)
+  onStop: (x, y) => { if (y < 99 && x > 150 && x < 266 && !st.flags.benchBehind) { st.flags.benchBehind = true;
+    script(() => say("Penkkien takana. Täältä kiitotie näkyy paremmin. Ja kukaan ei näe, että kengännauha on auki.")); } },
   actors: [VALTONEN, { id: "salkkumies", x: 272, y: 104, h: 48, color: "#7cfcfc", draw: (t, talking) => salesmanDisguised(272, 104, t, talking, "lehti") }],
   draw: lentoasemaDraw,
   props: [{ y: 104, draw: lentoasemaSeats }],

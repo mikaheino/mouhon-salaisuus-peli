@@ -426,13 +426,13 @@ function thumbsUp() {             // maskotin peukku toimiston ikkunassa setelin
   const y2 = 75 - Math.min(1, Math.max(0, s - .3) * 3) * 6; r(229, y2, 3, 4, "#dca482"); r(230, y2 - 2, 1, 2, "#dca482"); r(228, y2 + 4, 5, 2, "#1c2444");   // Saarnin peukku
 }
 async function readAd() {
-  if (st.flags.adRead) return showClose(adCloseUp, () => say("\"MOUHO hakee toiminnanjohtajaa Mouho 2027:lle. Haastattelut Kaivokatu 10, 20.11.\"", "muu"));
+  if (st.flags.adRead) return showClose(adCloseUp, () => say("\"MOUHO hakee toiminnanjohtajaa Mouho 2027:lle. Haastattelut Kaivokatu 10, myöhemmin syksyllä.\"", "muu"));
   st.flags.adRead = true; iq("ilmoitus", 3); give("ilmoitus");
   await say("Ilmoitustaululla on uusi lappu Mouho-logon alla:");
   await showClose(adCloseUp, async () => {           // lähikuva ilmoituksesta (fx.js closeUp)
     // lähikuvan aikana lyhyet rivit kuvan yläpuolelle (25.10.: pitkä laatikko peitti ilmoituksen)
     await say("\"MOUHO hakee TOIMINNANJOHTAJAA järjestämään Mouho 2027 -turnauksen.\"", "muu");
-    await say("\"Myös jäsenten hankinta ja tarjoilu. Haastattelut Mouho-illassa 20.11.\"", "muu");
+    await say("\"Myös jäsenten hankinta ja tarjoilu. Haastattelut Mouho-illassa myöhemmin syksyllä.\"", "muu");
     await say("\"Kaivokatu 10, Helsinki. Osallistuminen Mouhoon on kaikille ilmaista.\"", "muu");
     await say("Toiminnanjohtaja! Turnauksia, jäseniä ja tarjoilua. Olen tehnyt näitä kaikkia."); });
   await say("Tai ainakin katsonut vierestä.");

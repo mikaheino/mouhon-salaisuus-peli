@@ -187,7 +187,7 @@ async function prologue() {
       if (fly) { const f = (now - fly) / 1000, x = 140 + f * 150, y = 108 - f * 140 + f * f * 40;
         tumbleJussi(x, y, f * 9); tumbleBox(x - 30 + f * 10, y + 14, -f * 7); r(x - 50, y + 22 - f * 6, 12, 4, "#c8a030"); }
     };
-    await line("Helsinki, lokakuu 2026. Liigan toimisto. Aamu.", "muu");
+    await line("Helsinki, syksy. Liigan toimisto. Aamu.", "muu");
     door = performance.now(); beep(70, 160, "square", .08); shake(360, 3); flash("#fff0c0", 140); await wait(250);
     beep(110, 90, "sawtooth", .08); fly = performance.now();
     line("Kiitos yhteistyöstä!", "muu");
