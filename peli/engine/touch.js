@@ -7,7 +7,8 @@
 // avaa saman valikon; Käytä/Anna valitsee esineen, ja seuraava napautus osuu kohteeseen.
 // Päälle (pointer: coarse) tai ?mobiili, pois ?mobiili=0. Asettelu: index.html, html.touch.
 const TOUCH = (() => { const q = new URLSearchParams(location.search).get("mobiili");
-  return q === null ? matchMedia("(pointer: coarse)").matches : q !== "0"; })();
+  // Myös sovellusten sisäiset selaimet (WhatsApp, Slack, LinkedIn): kosketuspisteet tai ei hiiren osoitinta.
+  return q === null ? matchMedia("(pointer: coarse)").matches || matchMedia("(hover: none)").matches || navigator.maxTouchPoints > 0 : q !== "0"; })();
 if (TOUCH) document.documentElement.classList.add("touch");
 // Napautuksen väljyys pienten kohteiden ympärillä (CSS-pikseleinä; lattiakohteet vain tarkasti).
 const TAP_SLOP = 14;
@@ -70,7 +71,9 @@ if (TOUCH) {
       if (OUT.on) { OUT.on = false; place(...OUT.exit); } room().edges[side](); });
     document.getElementById("stage").append(b); return b; };
   const arrows = [["vasen", mk("vasen", "‹")], ["oikea", mk("oikea", "›")]];
-  const tick = () => { for (const [side, b] of arrows) { const show = !title && !overlay && !busy && !!room()?.edges?.[side]; if (b.hidden === show) b.hidden = !show; } requestAnimationFrame(tick); };
+  // Nuoli vain, kun huoneen reuna on kuvassa (vierivä rivi ja pystyasennon zoomi): muuten se peittäisi kohteita.
+  const edgeSeen = (side) => { const [v0, v1] = viewRange(), e = side === "vasen" ? camOff() : W + camOff(); return e > v0 - 2 && e < v1 + 2; };
+  const tick = () => { for (const [side, b] of arrows) { const show = !title && !overlay && !busy && !!room()?.edges?.[side] && edgeSeen(side); if (b.hidden === show) b.hidden = !show; } requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
 }
 
@@ -78,3 +81,28 @@ if (TOUCH) {
 { const m = document.getElementById("mnu"), h = m?.closest(".hint");
   m?.addEventListener("click", (e) => { e.stopPropagation(); h.classList.toggle("open"); });
   document.addEventListener("click", (e) => { if (h?.classList.contains("open") && e.target !== m) h.classList.remove("open"); }, true); }
+
+// ---------------------------------------------------------------- pystyasennon zoomi
+// Pystyssä koko kenttä leveänä olisi vain ~160 px korkea (käyttäjä 25.10.: "kaikki on edelleen todella pientä").
+// Kamera zoomaa: ikkuna (#stage) on korkeampi, kuva (#view) ikkunaa leveämpi ja liukuu Jussin tai puhuvan
+// hahmon mukaan. Välianimaatiot, lähikuvat ja puhelut näytetään kokonaisina. Napautukset osuvat oikein,
+// koska stagePos lukee kankaan todellisen paikan; kuplat rajataan näkyvään osaan (viewRange, talk.js).
+const ZOOM = { on: false, x: 0, scene: null, snap: true };
+const $stage = document.getElementById("stage"), $view = document.getElementById("view"), PORTRAIT = matchMedia("(orientation: portrait)");
+function zoomFocus() {            // kohdistus kuvan x:nä (0..W)
+  const npc = speaking && speaking !== GAME.playerId ? room()?.actors?.find((a) => a.id === speaking && !a.hidden?.()) : null;
+  return (npc ? npc.x : st.x) + camOff();
+}
+const zoomOff = (win, view) => Math.max(0, Math.min(view - win, zoomFocus() * view / W - win / 2));
+// Näkyvä osa kuvan x-koordinaatteina; kupla asettuu sen mukaan, minne kamera on menossa.
+function viewRange() { if (!ZOOM.on) return [0, W]; const win = $stage.clientWidth, view = $view.clientWidth, k = view / W, o = zoomOff(win, view); return [o / k, (o + win) / k]; }
+if (TOUCH) {
+  const zoomTick = () => {
+    const want = PORTRAIT.matches && !title && !overlay && !FX.close && !callSpk && !!room();
+    if (want !== ZOOM.on) { ZOOM.on = want; document.documentElement.classList.toggle("zoom", want); ZOOM.snap = true; }
+    if (want) { const win = $stage.clientWidth, view = $view.clientWidth, o = zoomOff(win, view);
+      ZOOM.x = ZOOM.snap || st.scene !== ZOOM.scene ? o : ZOOM.x + (o - ZOOM.x) * .12; ZOOM.scene = st.scene; ZOOM.snap = false;
+      $view.style.setProperty("--zx", -Math.round(ZOOM.x) + "px"); }
+    requestAnimationFrame(zoomTick); };
+  requestAnimationFrame(zoomTick);
+}

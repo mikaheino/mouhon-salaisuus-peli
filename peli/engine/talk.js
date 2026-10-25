@@ -17,12 +17,13 @@ function say(text, who = GAME.playerId) {
     const outside = who === GAME.playerId && OUT.on;      // ulkona: kupla sivun koordinaatteihin pelaajan pään yläpuolelle
     if (outside) { const k = cv.getBoundingClientRect().width / W; el.className = "bubble";
       Object.assign(el.style, { position: "fixed", zIndex: 41, left: OUT.x + "px", bottom: (innerHeight - OUT.y + 52 * k * OUT.sc) + "px", maxWidth: "min(44vw, 420px)", fontSize: "clamp(14px, 2vw, 22px)" }); el.style.setProperty("--c", "#c8a460"); }
-    else if (!spk || FX.close) { el.className = FX.close ? "caption close" : "caption"; if (FX.close && spk) el.style.setProperty("--c", spk.c); }   // lähikuvan aikana kaikki ylälaidan kaistaan, ei kuvan päälle
+    else if (!spk || FX.close) { el.className = FX.close ? "caption close" : "caption"; if (FX.close && spk) el.style.setProperty("--c", spk.c);   // lähikuvan aikana kaikki ylälaidan kaistaan, ei kuvan päälle
+      const [v0, v1] = viewRange(); if (v1 - v0 < W) { el.style.left = (50 * (v0 + v1) / W) + "%"; el.style.maxWidth = "90vw"; } }   // zoomattuna näkyvän osan keskelle
     else {
       // Kupla mitataan ja pidetään kokonaan ruudussa; häntä osoittaa silti puhujaan.
       el.className = "bubble"; el.style.left = (100 * spk.x / W) + "%"; el.style.bottom = (100 - 100 * (spk.y - 4) / H) + "%"; el.style.setProperty("--c", spk.c);
       requestAnimationFrame(() => { const stageW = $say.getBoundingClientRect().width, half = el.offsetWidth / 2 / stageW * W;
-        const cx = Math.min(Math.max(spk.x, half + 2), W - half - 2), maxTail = Math.max(0, el.offsetWidth / 2 - 16);
+        const [v0, v1] = viewRange(), cx = Math.min(Math.max(spk.x, v0 + half + 2), v1 - half - 2), maxTail = Math.max(0, el.offsetWidth / 2 - 16);
         el.style.left = (100 * cx / W) + "%"; el.style.setProperty("--tail", Math.max(-maxTail, Math.min(maxTail, (spk.x - cx) / W * stageW)) + "px"); });
     }
     el.textContent = text; if (outside) { $say.replaceChildren(); document.body.append(el);

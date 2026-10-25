@@ -21,6 +21,7 @@ body { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
 #game { width: min(960px, 100%); position: relative; user-select: none; }
 #stage { position: relative; width: 100%; aspect-ratio: 320 / 136; background: #000; }
 canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
+#view { position: absolute; inset: 0; }
 #say { position: absolute; inset: 0; pointer-events: none; }
 /* Puhekupla: valkoinen, puhujan värinen reunus, häntä puhujan päähän (--tail = sivusiirtymä). */
 .bubble { position: absolute; transform: translateX(-50%); width: max-content; max-width: 48%; padding: .35em .6em .4em; background: #fcfcf4; color: #1c1c1c;
@@ -106,35 +107,44 @@ html.touch #mouho2027 { max-height: 92dvh; font-size: 17px; }
 #stage .edge { all: unset; position: absolute; top: 50%; transform: translateY(-50%); width: 26px; height: 46px; display: grid; place-items: center; z-index: 3;
   background: rgba(0,0,0,.55); color: #fcfc54; font-size: 30px; line-height: 1; border: 1px solid #fcfc5488; cursor: pointer; animation: nudge 1.6s ease-in-out infinite; }
 #stage .edge.vasen { left: 2px; } #stage .edge.oikea { right: 2px; }
-/* Vaaka-asento: kuva lähes koko korkeudelle, tavarat ohueksi riviksi alle, lauserivi kuvan päälle,
-   Vihje/Tallenna/Lataa/Musiikki valikkonapin taakse ja keskustelun vaihtoehdot kuvan päälle. */
+/* Pystyasento: kamera zoomaa (touch.js, html.zoom): ikkuna on matalampi kuin koko kenttä leveänä olisi
+   korkea, ja ikkunaa leveämpi #view liukuu Jussin tai puhujan mukana. */
+html.zoom { --zh: min(40dvh, 72vw); }
+html.zoom #stage { aspect-ratio: auto; height: var(--zh); overflow: hidden; }
+html.zoom #view { right: auto; width: calc(var(--zh) * 320 / 136); transform: translateX(var(--zx, 0px)); }
+html.zoom .bubble { max-width: 86vw; }
+html.touch #game.talking #sentence { visibility: hidden; }
+/* Vaaka-asento: kuva lähes koko korkeudelle, tavarat ohueksi riviksi yläreunaan, lauserivi kuvan päälle,
+   Vihje/Tallenna/Lataa/Musiikki valikkonapin taakse ja keskustelun vaihtoehdot kuvan yläosaan. Kaikki
+   napautettava ylhäällä: iOS:n sovellusselaimen kelluva työkalurivi peittää alareunan (käyttäjä 25.10.). */
 #mnu { display: none; }
 @media (orientation: landscape) {
   html.touch { --sw: min(100vw, calc((100dvh - 44px) * 320 / 136)); }
   html.touch body { padding: 0; display: block; }
   html.touch #game { width: 100vw; height: 100vh; height: 100dvh; display: flex; flex-direction: column; align-items: center; }
   html.touch #stage { width: var(--sw); flex: none; }
-  html.touch #sentence { position: absolute; top: 3px; right: calc((100vw - var(--sw)) / 2 + 4px); z-index: 4; text-align: right; height: auto; max-width: calc(var(--sw) * .5); padding: 0 8px;
+  html.touch #sentence { position: absolute; top: 47px; right: calc((100vw - var(--sw)) / 2 + 4px); z-index: 4; text-align: right; height: auto; max-width: calc(var(--sw) * .5); padding: 0 8px;
     font-size: 17px; background: rgba(0,0,12,.6); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   html.touch #sentence:empty { display: none; }
-  html.touch #ui { width: var(--sw); height: 44px; padding: 3px 50px 3px 0; display: block; }
+  html.touch #ui { width: var(--sw); height: 44px; padding: 3px 50px 3px 0; display: block; order: -1; }
+  html.touch #game.talking #ui { display: block; visibility: hidden; }     /* rivin paikka pysyy: kuva ei hypi */
   html.touch #inv { display: flex; height: 100%; min-height: 0; gap: 8px; padding: 1px 8px; overflow-x: auto; border-width: 1px; }
   html.touch #inv button { height: 100%; flex: none; }
-  html.touch .hint { position: absolute; right: max(4px, calc((100vw - var(--sw)) / 2)); bottom: 3px; margin: 0; font-size: 18px; z-index: 7; }
+  html.touch .hint { position: absolute; right: max(4px, calc((100vw - var(--sw)) / 2)); top: 3px; margin: 0; font-size: 18px; z-index: 7; }
   html.touch .hint .tch, html.touch .hint .rot, html.touch #game.talking .hint { display: none; }
   html.touch #mnu { all: unset; display: grid; place-items: center; width: 42px; height: 38px; color: #fcfc54; font-size: 26px; background: #1c1c6c; border: 1px solid #3c3cac; cursor: pointer; }
   html.touch .hint .sys { display: none; }
-  html.touch .hint.open .sys { display: flex; flex-direction: column; align-items: stretch; position: absolute; right: 0; bottom: 44px; min-width: 190px; margin: 0;
+  html.touch .hint.open .sys { display: flex; flex-direction: column; align-items: stretch; position: absolute; right: 0; top: 42px; min-width: 190px; margin: 0;
     background: #10104c; border: 2px solid #5cfcfc; box-shadow: 0 0 0 3px #000; padding: 4px 0; font-size: 22px; text-align: left; }
   html.touch .hint.open .sys > * { padding: 6px 14px; } html.touch .hint.open .sys .dot { display: none; }
-  html.touch #dialog { position: absolute; left: 50%; transform: translateX(-50%); width: var(--sw); bottom: 0; z-index: 6; max-height: 62dvh; overflow-y: auto;
-    background: rgba(0,0,16,.88); border-top: 2px solid #5c2c7c; padding: 2px 10px 6px; }
+  html.touch #dialog { position: absolute; left: 50%; transform: translateX(-50%); width: var(--sw); top: 44px; z-index: 6; max-height: 62dvh; overflow-y: auto;
+    background: rgba(0,0,16,.88); border-bottom: 2px solid #5c2c7c; padding: 2px 10px 6px; }
 }
 </style>
 </head>
 <body>
 <div id="game">
-  <div id="stage"><canvas id="c" width="640" height="272"></canvas><div id="say"></div></div>
+  <div id="stage"><div id="view"><canvas id="c" width="640" height="272"></canvas><div id="say"></div></div></div>
   <div id="sentence"></div>
   <div id="ui"><div id="verbs"></div><div id="inv"></div></div>
   <div id="dialog"></div>
@@ -144,43 +154,43 @@ html.touch #mouho2027 { max-height: 92dvh; font-size: 17px; }
     <button id="mnu" aria-label="Valikko">☰</button>
     <span class="sys"><span id="iq">Mouho-IQ 0 / 136</span><span class="dot"> · </span><button id="hint">Vihje</button><span class="dot"> · </span><button id="save">Tallenna</button><span class="dot"> · </span><button id="load">Lataa</button><span class="dot"> · </span><button id="musiikki">Musiikki</button></span></div>
 </div>
-<script src="engine/core.js"></script>
-<script src="engine/gfx.js"></script>
-<script src="engine/walk.js"></script>
-<script src="engine/fx.js"></script>
-<script src="engine/talk.js"></script>
-<script src="engine/music.js"></script>
-<script src="engine/page.js"></script>
-<script src="engine/input.js"></script>
-<script src="engine/touch.js"></script>
-<script src="engine/faces.js"></script>
-<script src="engine/dev.js"></script>
-<script src="mouho/config.js"></script>
-<script src="mouho/music.js"></script>
-<script src="mouho/pixfaces.js"></script>
-<script src="mouho/characters.js"></script>
-<script src="mouho/art.js"></script>
-<script src="mouho/lahikuvat.js"></script>
-<script src="mouho/visa.js"></script>
-<script src="mouho/haamut.js"></script>
-<script src="mouho/scenes/otsikko.js"></script>
-<script src="mouho/scenes/puhelut.js"></script>
-<script src="mouho/scenes/prologi.js"></script>
-<script src="mouho/scenes/loppu.js"></script>
-<script src="mouho/kokeilut/southpark.js"></script>
-<script src="mouho/items.js"></script>
-<script src="mouho/story.js"></script>
-<script src="mouho/rooms/kisapuisto.js"></script>
-<script src="mouho/rooms/parkki.js"></script>
-<script src="mouho/rooms/lentoasema.js"></script>
-<script src="mouho/rooms/basaari.js"></script>
-<script src="mouho/rooms/portti.js"></script>
-<script src="mouho/rooms/temppeli.js"></script>
-<script src="mouho/rooms/kallio.js"></script>
-<script src="mouho/rooms/silta.js"></script>
-<script src="mouho/scenes/luvut.js"></script>
-<script src="mouho/scenes/minipeli.js"></script>
-<script src="mouho/scenes/uni.js"></script>
-<script src="mouho/main.js"></script>
+<script src="engine/core.js?v=bb4c007"></script>
+<script src="engine/gfx.js?v=bb4c007"></script>
+<script src="engine/walk.js?v=bb4c007"></script>
+<script src="engine/fx.js?v=bb4c007"></script>
+<script src="engine/talk.js?v=bb4c007"></script>
+<script src="engine/music.js?v=bb4c007"></script>
+<script src="engine/page.js?v=bb4c007"></script>
+<script src="engine/input.js?v=bb4c007"></script>
+<script src="engine/touch.js?v=bb4c007"></script>
+<script src="engine/faces.js?v=bb4c007"></script>
+<script src="engine/dev.js?v=bb4c007"></script>
+<script src="mouho/config.js?v=bb4c007"></script>
+<script src="mouho/music.js?v=bb4c007"></script>
+<script src="mouho/pixfaces.js?v=bb4c007"></script>
+<script src="mouho/characters.js?v=bb4c007"></script>
+<script src="mouho/art.js?v=bb4c007"></script>
+<script src="mouho/lahikuvat.js?v=bb4c007"></script>
+<script src="mouho/visa.js?v=bb4c007"></script>
+<script src="mouho/haamut.js?v=bb4c007"></script>
+<script src="mouho/scenes/otsikko.js?v=bb4c007"></script>
+<script src="mouho/scenes/puhelut.js?v=bb4c007"></script>
+<script src="mouho/scenes/prologi.js?v=bb4c007"></script>
+<script src="mouho/scenes/loppu.js?v=bb4c007"></script>
+<script src="mouho/kokeilut/southpark.js?v=bb4c007"></script>
+<script src="mouho/items.js?v=bb4c007"></script>
+<script src="mouho/story.js?v=bb4c007"></script>
+<script src="mouho/rooms/kisapuisto.js?v=bb4c007"></script>
+<script src="mouho/rooms/parkki.js?v=bb4c007"></script>
+<script src="mouho/rooms/lentoasema.js?v=bb4c007"></script>
+<script src="mouho/rooms/basaari.js?v=bb4c007"></script>
+<script src="mouho/rooms/portti.js?v=bb4c007"></script>
+<script src="mouho/rooms/temppeli.js?v=bb4c007"></script>
+<script src="mouho/rooms/kallio.js?v=bb4c007"></script>
+<script src="mouho/rooms/silta.js?v=bb4c007"></script>
+<script src="mouho/scenes/luvut.js?v=bb4c007"></script>
+<script src="mouho/scenes/minipeli.js?v=bb4c007"></script>
+<script src="mouho/scenes/uni.js?v=bb4c007"></script>
+<script src="mouho/main.js?v=bb4c007"></script>
 </body>
 </html>

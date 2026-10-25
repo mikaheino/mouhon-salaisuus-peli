@@ -49,14 +49,23 @@ if (TEST) {
     odota: () => settle(),
     kohta(nimi) { const R = cv.getBoundingClientRect(), k = R.width / W, at = (x, y) => ({ x: R.left + (x + camOff()) * k, y: R.top + y * k });
       const m = /^numero (\d)$/.exec(nimi);
-      if (m) { const A = QUIZ_AREA[st.scene], y = (A.y0 + A.y1) / 2, [a, b] = A.edges(y); return { ...at(a + (KEYS.indexOf(m[1]) + .5) / 10 * (b - a), y), lattia: true }; }
+      const top = (x, y) => { const q = at(x, y); return document.elementFromPoint(q.x, q.y) === cv; };     // ei nuolen tai muun napin alla
+      // Askel kohti kuvan ulkopuolella olevaa kohdetta: näkyvä lattian kohta reunan lähellä, jossa ei ole kohdetta.
+      const step = (dir) => { const [v0, v1] = viewRange();
+        for (let i = 6; i < 80; i += 3) for (let d = 0; d < H; d += 2) for (const y of [st.y + d, st.y - d]) { const x = (dir < 0 ? v0 + i : v1 - i) - camOff();
+          if (y > 0 && y < H - 1 && polys().some((q) => inPoly(x, y, q)) && !(TOUCH ? spotNear : spotsAt)(x, y) && !onSelf(x, y, 4) && top(x, y)) return at(x, y); }
+        return at(st.x, st.y); };
+      if (m) { const A = QUIZ_AREA[st.scene], y = (A.y0 + A.y1) / 2, [a, b] = A.edges(y), x = a + (KEYS.indexOf(m[1]) + .5) / 10 * (b - a), [v0, v1] = viewRange(), sx = x + camOff();
+        const ohi = sx < v0 + 3 ? -1 : sx > v1 - 3 ? 1 : 0; return { ...at(x, y), lattia: true, ohi, askel: ohi && step(ohi) }; }
       const p = findSpot(nimi);
       // Napautuskohta: lähin keskipistettä oleva piste, jossa spotsAt osuu juuri tähän kohteeseen (päällekkäiset kohteet).
-      if (p) { let cx = p.x + p.w / 2, cy = p.y + p.h / 2, bd = 1e9;
+      // Vain kuvassa näkyvä osa kelpaa (vierivä rivi ja pystyasennon zoomi, viewRange); muuten ohi = suunta.
+      if (p) { let cx = p.x + p.w / 2, cy = p.y + p.h / 2, bd = 1e9; const [v0, v1] = viewRange(), vis = (x) => x + camOff() > v0 + 3 && x + camOff() < v1 - 3;
         for (let y = p.y + 1; y < p.y + p.h; y += 2) for (let x = p.x + 1; x < p.x + p.w; x += 2) { const d = Math.hypot(x - (p.x + p.w / 2), y - (p.y + p.h / 2));
-          if (d < bd && spotsAt(x, y) === p) { bd = d; cx = x; cy = y; } }
+          if (d < bd && vis(x) && spotsAt(x, y) === p && top(x, y)) { bd = d; cx = x; cy = y; } }
         const sx = cx + camOff(), pos = at(cx, cy);
-        return { ...pos, exit: !!p.exit, floor: !!p.floor, ohi: sx < 4 ? -1 : sx > W - 4 ? 1 : 0, jalat: at(st.x, st.y) }; }
+        const ohi = bd < 1e9 ? 0 : sx < (v0 + v1) / 2 ? -1 : 1;
+        return { ...pos, exit: !!p.exit, floor: !!p.floor, ohi, askel: ohi && step(ohi) }; }
       const i = findItem(nimi); if (i) { const b = $inv.children[st.inv.indexOf(i)].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, esine: true }; }
       return null; },
   };
