@@ -65,6 +65,8 @@ definePreview("loppu", (Q) => {          // loppuhuone täynnä: kaikki saapujat
   for (let i = 0; i < 6; i++) add("basaari", i); add("serkku", 0); for (const v of [3, 0, 5]) add("kalastaja", v);
   const all = Q.has("kaikki"), S = { crowd, flipT: Q.has("kaavio") || all ? performance.now() - 5000 : null, kebabOn: all, trophyOn: all, whistleT: null, puckT: all ? performance.now() - 5000 : null };
   overlay = (t) => endRoomDraw(S, t); });
+definePreview("savethedate", (Q) => { overlay = (t) => endRoomDraw({ crowd: [], flipT: performance.now() - 5000, kebabOn: true, trophyOn: true }, t);   // &pvm=2027-03-13T17:00:00%2B02:00 &lomake
+  if (Q.get("pvm")) GAME.event.start = Q.get("pvm"); if (!Q.has("lomake")) GAME.endFormApi = null; mouho2027Form(); });
 definePreview("hallitus", () => { overlay = (t) => { mouhoInDraw(t); boardTable(t); shadow(176, 128, 7); jussi(176, 128, -1, 0, {});
   for (let i = 0; i < 6; i++) npc(i, 14 + i * 13, 110, t, { sc: .85 });
   person("maskotti", 22, 124, t, { sc: .85 }); person("saarni", 46, 124, t, { sc: .85 }); merchant(72, 124, t); salesman(96, 124, t); ghostRef(154, 122, t); }; });

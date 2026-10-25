@@ -6,6 +6,11 @@ GAME.playerId = "jussi";
 GAME.saveKey = "mouho-2026-save-v3";   // v3 (17.10.): uusi juoni, vanhat tallennukset eivät sovi
 GAME.endFormId = "mouho2027";          // Mouho 2027 -ilmoittautuminen pelin lopussa
 GAME.endFormApi = null;   // liiga-sovelluksen reitti; staattisessa nettiversiossa (tools/dist.mjs) null: ei lomaketta
+// Mouho 2027 -turnaus: pelin lopun "Save the date" -kortti ja kalenterikutsu (scenes/loppu.js). Pelkkä päivä
+// ("2027-05-21") = koko päivän tapahtuma; kellonajan kanssa Helsingin siirtymällä, esim. "2027-05-21T17:00:00+03:00"
+// (kesäaika). start null = päivä vahvistamatta, ei kalenterinappeja. Päivä kerrotaan vain pelin lopussa (käyttäjä 25.10.).
+GAME.event = { title: "Mouho 2027", start: "2027-05-21", end: null, place: "Kaivokatu 10, 4. krs, Helsinki",
+  details: "Mouho 2027: 2v2 NHL PS5:llä. Osallistuminen on ilmaista.", url: "https://mikaheino.github.io/mouhon-salaisuus-peli/" };
 GAME.iqLabel = "Mouho-IQ";
 GAME.iconSize = [48, 32];         // tavarakuvakkeet tuplatarkkoina (palaute 24.10.: "kökköjä")
 GAME.iconOutline = "#1a1426";     // sarjakuvamainen ääriviiva kaikkiin kuvakkeisiin

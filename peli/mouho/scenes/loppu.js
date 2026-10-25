@@ -304,6 +304,8 @@ async function ending() {
   await say("Pidä brändisi. Meille riittää tämä ilta ja hyvä tarina. Ja kebabien jälkikäteen maksu? Mouho on ilmainen. Sinähän sen minulle kerroit.", "kauppias");
   await say("Hallitus: \"Ennätysmäärä jäseniä, tarjoilu, kiertopalkinto ja kansainvälinen kumppani, joka ei peri mitään. Olet palkattu, toiminnanjohtaja.\"", "muu");
   await say("Juuri kuten suunnittelin. Tai melkein.");
+  await say(GAME.event.start ? `Ensimmäinen päätökseni toiminnanjohtajana: Mouho 2027 pelataan ${eventWhen(GAME.event, true)}. Kaivokatu 10. Kaikki mukaan!`
+    : "Ensimmäinen päätökseni toiminnanjohtajana: Mouho 2027:n päivä kerrotaan pian. Pitäkää kalenterit auki!");
   [880, 1040, 880, 1040].forEach((fq, n) => setTimeout(() => beep(fq, 70, "square", .04), n * 75)); await sleep(600);
   await say("Puhelin soi. Liigan toimisto.", "muu");
   await say(`Liiga: "Markkanen? Mouho-illan uutinen kiertää jo: turkkilaiset sijoittajat, ${f.recruits ?? 0} jäsentä ja haamutuomari. Miten sait turkkilaiset kiinnostumaan jääkiekosta?"`, "muu");
@@ -350,21 +352,20 @@ function mouho2027Form() {
   // lomake himmennetyn taustan päällä: ikkuna, ei grafiikan päälle osuva laatikko
   const wrap = Object.assign(document.createElement("div"), { className: "dim" }), box = document.createElement("form"); box.id = "mouho2027"; wrap.append(box);
   const close = () => wrap.remove();
-  if (!GAME.endFormApi) {       // nettiversio ilman palvelinta (tools/dist.mjs): kutsu ilman lomaketta
-    box.innerHTML = `<h2>Mouho 2027</h2><p>Toiminnanjohtaja Markkanen kutsuu sinut: 2v2 NHL, PS5. Ilmainen, kuten aina.</p>
-      <small>Kiitos, että pelasit! Mouho 2027 -turnauksen päivä ja paikka kerrotaan myöhemmin.</small><div class="row"><button type="button">Sulje</button></div>`;
-    box.querySelector("button").onclick = close; document.getElementById("stage").append(wrap); return; }
-  box.innerHTML = `
-    <h2>Mouho 2027</h2>
-    <p>Toiminnanjohtaja Markkanen kutsuu sinut: 2v2 NHL, PS5, Kaivokatu 10, Helsinki. Ilmainen, kuten aina.</p>
+  const E = GAME.event, top = `<p class="std">Save the date</p><h2>${E.title}</h2>
+    <p class="when">${eventWhen(E)}</p><p>${E.place}. 2v2 NHL, PS5. Ilmainen, kuten aina.</p>${calButtons(E)}`;
+  if (!GAME.endFormApi) {       // nettiversio ilman palvelinta (tools/dist.mjs): kutsu ja kalenteri ilman lomaketta
+    box.innerHTML = `${top}<small>Toiminnanjohtaja Markkanen kutsuu sinut. Kiitos, että pelasit!</small><div class="row"><button type="button" data-close>Sulje</button></div>`;
+    calWire(box, E); box.querySelector("[data-close]").onclick = close; document.getElementById("stage").append(wrap); return; }
+  box.innerHTML = `${top}
     <label>Nimi <input name="nimi" required minlength="2" maxlength="80" autocomplete="off" data-1p-ignore data-lpignore="true"></label>
     <label>Sähköposti <input name="email" type="email" required maxlength="120" autocomplete="off" data-1p-ignore data-lpignore="true"></label>
     <label>Pelikaveri (2v2, valinnainen) <input name="pari" maxlength="80" autocomplete="off" data-1p-ignore data-lpignore="true"></label>
     <label>PSN-nimi (valinnainen) <input name="psn" maxlength="40" autocomplete="off" data-1p-ignore data-lpignore="true"></label>
-    <small>Päivä ja paikka ilmoitetaan sähköpostilla. Tietoja käytetään vain Mouho 2027 -ilmoittautumiseen.</small>
+    <small>${E.start ? "" : "Päivä ilmoitetaan sähköpostilla. "}Tietoja käytetään vain Mouho 2027 -ilmoittautumiseen.</small>
     <div class="row"><button type="submit">Ilmoittaudu</button><button type="button" data-close>Ei nyt</button></div>
     <p class="msg" role="status"></p>`;
-  const msg = box.querySelector(".msg");
+  const msg = box.querySelector(".msg"); calWire(box, E);
   box.querySelector("[data-close]").onclick = close;
   box.onsubmit = async (e) => {
     e.preventDefault(); const d = Object.fromEntries(new FormData(box)); d.iq = `${iqTotal()}/${IQ_MAX}`;
@@ -378,6 +379,41 @@ function mouho2027Form() {
     } catch (err) { msg.textContent = `Ilmoittautuminen ei onnistunut: ${err.message}`; box.querySelector("[type=submit]").disabled = false; }
   };
   document.getElementById("stage").append(wrap);   // ei automaattista fokusta: salasanaohjelma avautui kentän päälle
+}
+
+// "Save the date" (käyttäjä 25.10.: pelin tarkoitus on kertoa turnauksen ajankohta ja ehdottaa kalenterikutsua).
+// GAME.event (config.js): .ics-tiedosto käy kaikkiin kalentereihin, lisäksi Google- ja Outlook-linkit.
+const calUtc = (iso) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+const allDay = (E) => !E.start.includes("T");
+const dayAfter = (d) => new Date(Date.parse(d + "T12:00:00Z") + 864e5).toISOString().slice(0, 10);
+const calEnd = (E) => E.end ?? (allDay(E) ? dayAfter(E.start) : new Date(new Date(E.start).getTime() + 4 * 3600e3).toISOString());
+const calDates = (E) => allDay(E) ? [E.start.replace(/-/g, ""), calEnd(E).replace(/-/g, "")] : [calUtc(E.start), calUtc(calEnd(E))];
+function eventWhen(E, long = false) {       // kortti: "Pe 21.5.2027 (klo 17.00–21.00)", repliikki (long): "perjantaina 21.5.2027 (kello 17.00)"
+  if (!E.start) return "Päivä vahvistetaan pian";
+  const o = { timeZone: "Europe/Helsinki" }, d = new Date(allDay(E) ? E.start + "T12:00:00+03:00" : E.start), hm = (x) => x.toLocaleTimeString("fi-FI", { ...o, hour: "2-digit", minute: "2-digit" });
+  const wd = d.toLocaleDateString("fi-FI", { ...o, weekday: long ? "long" : "short" }), day = d.toLocaleDateString("fi-FI", { ...o, day: "numeric", month: "numeric", year: "numeric" });
+  if (long) return `${wd}${wd.endsWith("na") ? "" : "na"} ${day}${allDay(E) ? "" : ` kello ${hm(d)}`}`;
+  return `${wd[0].toUpperCase()}${wd.slice(1)} ${day}${allDay(E) ? "" : ` klo ${hm(d)}–${hm(new Date(calEnd(E)))}`}`;
+}
+function calButtons(E) {
+  if (!E.start) return "";
+  const q = (o) => new URLSearchParams(o).toString(), end = calEnd(E), [d0, d1] = calDates(E);
+  const google = "https://calendar.google.com/calendar/render?" + q({ action: "TEMPLATE", text: E.title, dates: `${d0}/${d1}`, details: `${E.details}\n${E.url}`, location: E.place });
+  const outlook = "https://outlook.office.com/calendar/0/deeplink/compose?" + q({ path: "/calendar/action/compose", rru: "addevent", subject: E.title, startdt: E.start, enddt: end,
+    ...(allDay(E) ? { allday: "true" } : {}), location: E.place, body: `${E.details}\n${E.url}` });
+  return `<div class="row cal"><button type="button" data-ics>Lisää kalenteriin</button><a href="${google}" target="_blank" rel="noopener">Google</a><a href="${outlook}" target="_blank" rel="noopener">Outlook</a></div>`;
+}
+function calWire(box, E) {
+  const b = box.querySelector("[data-ics]"); if (!b) return;
+  b.onclick = () => {
+    const esc = (t) => t.replace(/[\\;,]/g, (c) => "\\" + c).replace(/\n/g, "\\n");
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Mouho//Mouhon salaisuus//FI", "METHOD:PUBLISH", "BEGIN:VEVENT",
+      `UID:${calDates(E)[0]}-mouho2027@mouhon-salaisuus`, `DTSTAMP:${calUtc(new Date().toISOString())}`,
+      ...(allDay(E) ? [`DTSTART;VALUE=DATE:${calDates(E)[0]}`, `DTEND;VALUE=DATE:${calDates(E)[1]}`] : [`DTSTART:${calDates(E)[0]}`, `DTEND:${calDates(E)[1]}`]),
+      `SUMMARY:${esc(E.title)}`, `LOCATION:${esc(E.place)}`, `DESCRIPTION:${esc(`${E.details}\n${E.url}`)}`, `URL:${E.url}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([ics], { type: "text/calendar" })), download: "mouho-2027.ics" });
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); beep(784, 120, "triangle", .05);
+  };
 }
 
 // ---------------------------------------------------------------- lopputekstit (25.10.)
