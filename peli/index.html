@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mouhon salaisuus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* Mouhon salaisuus -- point-and-click 1990-luvun LucasArts-hengessä.
+   Kolme pelattavaa ruutua: Kisapuisto (Lappeenranta), Istanbulin basaari, luolatemppeli.
+   Kaikki grafiikka piirretään koodilla canvasille; ei ulkoisia kuvia. */
+:root {
+  --bg: #000; --ui: #000; --verb: #2c7c2c; --verb-hi: #5cfc5c; --sentence: #5cfcfc;
+  --inv: #1c1c6c; --inv-hi: #fcfc54; --txt: #fcfcfc;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #000; } }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--txt); font-family: "VT323", ui-monospace, monospace; }
+body { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+#game { width: min(960px, 100%); position: relative; user-select: none; }
+#stage { position: relative; width: 100%; aspect-ratio: 320 / 136; background: #000; }
+canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
+#say { position: absolute; inset: 0; pointer-events: none; }
+/* Puhekupla: valkoinen, puhujan värinen reunus, häntä puhujan päähän (--tail = sivusiirtymä). */
+.bubble { position: absolute; transform: translateX(-50%); width: max-content; max-width: 48%; padding: .35em .6em .4em; background: #fcfcf4; color: #1c1c1c;
+  border: 3px solid var(--c, #1c1c1c); border-radius: 14px; box-shadow: 3px 3px 0 rgba(0,0,0,.55); text-align: center;
+  font-size: clamp(14px, 2.4vw, 24px); line-height: 1.05; white-space: pre-line; animation: pop .14s ease-out both; }
+.bubble::after, .bubble::before { content: ""; position: absolute; left: calc(50% + var(--tail, 0px)); transform: translateX(-50%); width: 0; height: 0; border-style: solid; }
+.bubble::before { top: 100%; border-width: 13px 9px 0 9px; border-color: var(--c, #1c1c1c) transparent transparent transparent; }
+.bubble::after { top: calc(100% - 1px); border-width: 9px 6px 0 6px; border-color: #fcfcf4 transparent transparent transparent; }
+@keyframes pop { from { transform: translateX(-50%) scale(.7); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+/* Kertoja: tekstilaatikko ruudun yläreunassa, kuin sarjakuvan tekstiruutu. */
+.caption { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); max-width: 80%; padding: .3em .7em; background: #fcf09c; color: #2c1c08;
+  border: 3px solid #2c1c08; box-shadow: 3px 3px 0 rgba(0,0,0,.55); text-align: center; font-size: clamp(14px, 2.4vw, 24px); line-height: 1.05; white-space: pre-line; }
+/* Lähikuvan aikana (fx.js closeUp) teksti mahtuu kuvan yläpuolelle jäävään kaistaan: yksi rivi, pienempi. */
+.caption.close { top: 1%; max-width: 96%; padding: .15em .6em; border-width: 2px; border-color: var(--c, #2c1c08); font-size: min(2.05vw, 20px); white-space: nowrap; }
+.line { position: absolute; transform: translateX(-50%); max-width: 46%; text-align: center; font-size: clamp(15px, 2.6vw, 26px); line-height: 1.05;
+  text-shadow: 2px 0 #000, -2px 0 #000, 0 2px #000, 0 -2px #000, 2px 2px #000; white-space: pre-line; }
+#sentence { height: 1.4em; text-align: center; color: var(--sentence); font-size: clamp(16px, 2.8vw, 28px); padding-top: 4px; }
+#ui { display: grid; grid-template-columns: 1.15fr 1fr; gap: 10px; padding: 4px 6px 10px; min-height: 9.2em; font-size: clamp(16px, 2.8vw, 28px); }
+#verbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 6px; align-content: start; }
+#verbs button, #dialog button { all: unset; cursor: pointer; color: var(--verb); line-height: 1.15; }
+#verbs button:hover, #verbs button.on { color: var(--verb-hi); }
+#verbs button.def { color: #a8fca8; text-shadow: 0 0 6px #2c7c2c; }
+#inv { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(0, max-content); gap: 6px; align-content: start; background: var(--inv); padding: 6px; border: 2px solid #3c3cac; }
+/* Tavarat kuvakkeina (MI2): vapaasti paneelin päällä ilman ruutuja (palaute 25.10.: "turhat neliöt"). */
+#inv button { all: unset; cursor: pointer; display: grid; place-items: center; aspect-ratio: 3 / 2; }
+#inv button img { width: 100%; height: 100%; image-rendering: pixelated; }
+#inv button.new { animation: newItem .45s ease-in-out 5 alternate; }
+#inv button.nudge { animation: nudge 1.6s ease-in-out infinite; }
+@keyframes nudge { 50% { filter: drop-shadow(0 0 4px rgba(252,212,28,.8)); } }
+@keyframes newItem { to { filter: drop-shadow(0 0 6px #fcd41c); transform: scale(1.15); } }
+#inv button:hover { transform: scale(1.08); filter: brightness(1.15); } #inv button.sel { filter: drop-shadow(0 0 2px var(--inv-hi)) drop-shadow(0 0 2px var(--inv-hi)); transform: scale(1.08); }
+.sys button { all: unset; cursor: pointer; color: #5c8c5c; } .sys button:hover { color: var(--verb-hi); }
+#dialog { display: none; flex-direction: column; gap: 2px; padding: 4px 6px 10px; min-height: 9.2em; font-size: clamp(16px, 2.8vw, 28px); }
+#dialog button { color: #fc54fc; } #dialog button.asked { color: #7c3c9c; } #dialog button:hover { color: #fcfc54; }
+#iq { color: #fcc81c; }
+#game.talking #ui { display: none; } #game.talking #dialog { display: flex; }
+/* Välikohtauksessa himmeä pikseliristikko eikä "wait": macOS näyttää waitin pyörivänä
+   latausikonina, ja peli näytti jumittuvan (käyttäjä 17.10.). */
+#game.cut canvas { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' shape-rendering='crispEdges'%3E%3Cpath d='M8 0h1v6H8zM8 11h1v6H8zM0 8h6v1H0zM11 8h6v1h-6z' fill='%23707090'/%3E%3C/svg%3E") 8 8, default; }
+.hint { margin-top: 10px; color: #545454; font-size: 18px; text-align: center; }
+@media (max-width: 520px) { #ui { grid-template-columns: 1fr; } }
+.dim { position: absolute; inset: 0; background: rgba(4,4,20,.6); }
+#mouho2027 { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92%, 420px); max-height: 96%; overflow: auto; background: #10104c; border: 2px solid #fcd41c;
+  color: #e8e0c8; font: 15px VT323, monospace; padding: 12px 16px; display: grid; gap: 7px; box-shadow: 0 0 0 4px #000, 0 10px 30px #000a; z-index: 5; }
+#mouho2027 h2 { margin: 0; color: #fcfc54; font-size: 26px; letter-spacing: .04em; }
+#mouho2027 p { margin: 0; }
+#mouho2027 label { display: grid; gap: 2px; color: #a8c8fc; }
+#mouho2027 input { font: 16px VT323, monospace; background: #000; color: #fcfcfc; border: 1px solid #5c5ca8; padding: 4px 6px; }
+#mouho2027 small { color: #8c8cc8; }
+#mouho2027 .row { display: flex; gap: 12px; }
+#mouho2027 button { all: unset; cursor: pointer; padding: 4px 12px; background: #fcd41c; color: #10104c; font: 18px VT323, monospace; }
+#mouho2027 button[data-close] { background: transparent; color: #8c8cc8; }
+#mouho2027 .msg { color: #fc9c7c; min-height: 1em; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="stage"><canvas id="c" width="640" height="272"></canvas><div id="say"></div></div>
+  <div id="sentence"></div>
+  <div id="ui"><div id="verbs"></div><div id="inv"></div></div>
+  <div id="dialog"></div>
+  <div class="hint">Valitse verbi, sitten kohde. Oikea painike = oletustoiminto. Esc tai klikkaus ohittaa repliikin.
+    <span class="sys"><span id="iq">Mouho-IQ 0 / 136</span> · <button id="hint">Vihje</button> · <button id="save">Tallenna</button> · <button id="load">Lataa</button> · <button id="musiikki">Musiikki</button></span></div>
+</div>
+<script src="engine/core.js"></script>
+<script src="engine/gfx.js"></script>
+<script src="engine/walk.js"></script>
+<script src="engine/fx.js"></script>
+<script src="engine/talk.js"></script>
+<script src="engine/music.js"></script>
+<script src="engine/page.js"></script>
+<script src="engine/input.js"></script>
+<script src="engine/faces.js"></script>
+<script src="engine/dev.js"></script>
+<script src="mouho/config.js"></script>
+<script src="mouho/music.js"></script>
+<script src="mouho/pixfaces.js"></script>
+<script src="mouho/characters.js"></script>
+<script src="mouho/art.js"></script>
+<script src="mouho/lahikuvat.js"></script>
+<script src="mouho/visa.js"></script>
+<script src="mouho/haamut.js"></script>
+<script src="mouho/scenes/otsikko.js"></script>
+<script src="mouho/scenes/puhelut.js"></script>
+<script src="mouho/scenes/prologi.js"></script>
+<script src="mouho/scenes/loppu.js"></script>
+<script src="mouho/kokeilut/southpark.js"></script>
+<script src="mouho/items.js"></script>
+<script src="mouho/story.js"></script>
+<script src="mouho/rooms/kisapuisto.js"></script>
+<script src="mouho/rooms/parkki.js"></script>
+<script src="mouho/rooms/lentoasema.js"></script>
+<script src="mouho/rooms/basaari.js"></script>
+<script src="mouho/rooms/portti.js"></script>
+<script src="mouho/rooms/temppeli.js"></script>
+<script src="mouho/rooms/kallio.js"></script>
+<script src="mouho/rooms/silta.js"></script>
+<script src="mouho/scenes/luvut.js"></script>
+<script src="mouho/scenes/minipeli.js"></script>
+<script src="mouho/scenes/uni.js"></script>
+<script src="mouho/main.js"></script>
+</body>
+</html>

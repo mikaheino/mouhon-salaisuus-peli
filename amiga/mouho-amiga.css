@@ -1,0 +1,36 @@
+:root {
+  --bg: #15161b;
+  --fg: #d8d4c8;
+  --dim: #8a877f;
+  --case: #cfc8b4;
+  --case-dark: #a9a18b;
+  --accent: #f2b33d;
+  --led-off: #3a3a3a;
+  --led-power: #47d16b;
+  --led-disk: #f6a531;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+main { max-width: 980px; margin: 0 auto; padding: 16px; }
+header { text-align: center; margin-bottom: 12px; }
+h1 { margin: 0; font-size: 28px; letter-spacing: 1px; color: var(--accent); }
+.sub { margin: 2px 0 0; color: var(--dim); font-size: 13px; }
+.monitor { position: relative; width: min(100%, calc((100vh - 230px) * 1.2676 + 44px)); min-width: 300px; margin: 0 auto; background: linear-gradient(var(--case), var(--case-dark)); border-radius: 14px; padding: 22px; box-shadow: 0 8px 30px #0008; }
+#screen { background: #000; border-radius: 6px; overflow: hidden; aspect-ratio: 720 / 568; width: 100% !important; height: auto !important; }
+#screen canvas { width: 100% !important; height: 100% !important; image-rendering: pixelated; display: block; }
+#cover { position: absolute; inset: 22px; display: flex; align-items: center; justify-content: center; background: #000c; border-radius: 6px; }
+#cover[hidden] { display: none; }
+.leds { display: flex; gap: 8px; align-items: center; margin: 10px 4px; font-size: 13px; color: var(--dim); flex-wrap: wrap; }
+.led { width: 18px; height: 6px; border-radius: 2px; background: var(--led-off); display: inline-block; }
+.led.on { background: var(--led-power); box-shadow: 0 0 6px var(--led-power); }
+#led-df0.on { background: var(--led-disk); box-shadow: 0 0 6px var(--led-disk); }
+#status { margin-left: auto; color: var(--fg); }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+button, .file { font: inherit; font-size: 14px; background: #2a2c34; color: var(--fg); border: 1px solid #444; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+button:hover, .file:hover { border-color: var(--accent); }
+#power { font-size: 18px; padding: 10px 20px; }
+.file input { display: none; }
+.help { margin-top: 14px; color: var(--dim); font-size: 13px; }
+.help b { color: var(--fg); }
+.help a { color: var(--accent); }
+code { color: var(--fg); }

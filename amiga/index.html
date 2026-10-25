@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mouhon salaisuus – Amiga 1200</title>
+<!-- Backlog 6, vaihe 3: Amiga 1200 -versio emuloituna. Emulaattori SAE (GPL-2, sae/LAHDE.txt),
+     vapaa AROS-ROM tai käyttäjän oma Kickstart 3.1. Sivu käynnistää koneen ilman levyä (ROMin
+     käynnistysruutu), asettaa levyn mouho.adf asemaan DF0 ja levy käynnistää pelin. -->
+<link rel="stylesheet" href="mouho-amiga.css">
+<script src="sae/js/prototypes.js"></script>
+<script src="sae/js/utils.js"></script>
+<script src="sae/js/dms.js"></script>
+<script src="sae/js/config.js"></script>
+<script src="sae/js/roms.js"></script>
+<script src="sae/js/memory.js"></script>
+<script src="sae/js/autoconf.js"></script>
+<script src="sae/js/expansion.js"></script>
+<script src="sae/js/events.js"></script>
+<script src="sae/js/gayle.js"></script>
+<script src="sae/js/ide.js"></script>
+<script src="sae/js/filesys.js"></script>
+<script src="sae/js/hardfile.js"></script>
+<script src="sae/js/dongle.js"></script>
+<script src="sae/js/input.js"></script>
+<script src="sae/js/serpar.js"></script>
+<script src="sae/js/custom.js"></script>
+<script src="sae/js/blitter.js"></script>
+<script src="sae/js/copper.js"></script>
+<script src="sae/js/playfield.js"></script>
+<script src="sae/js/video.js"></script>
+<script src="sae/js/audio.js"></script>
+<script src="sae/js/cia.js"></script>
+<script src="sae/js/disk.js"></script>
+<script src="sae/js/rtc.js"></script>
+<script src="sae/js/m68k.js"></script>
+<script src="sae/js/cpu.js"></script>
+<script src="sae/js/amiga.js"></script>
+<script src="mouho-amiga.js"></script>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Mouhon salaisuus</h1>
+    <p class="sub">Amiga 1200 · AGA · 68020 · 2 Mt chip + 4 Mt fast · levyke DF0</p>
+  </header>
+
+  <div class="monitor">
+    <div id="screen"></div>
+    <div id="cover" hidden><button id="power" type="button">Virta päälle</button></div>
+  </div>
+
+  <div class="leds" aria-live="polite">
+    <span class="led" id="led-power"></span><span>Virta</span>
+    <span class="led" id="led-df0"></span><span>DF0 <span id="df0-track">–</span></span>
+    <span id="status">Käynnistetään…</span>
+  </div>
+
+  <div class="controls">
+    <button id="btn-disk" type="button">Poista levy</button>
+    <button id="btn-reset" type="button">Uudelleenkäynnistys</button>
+    <label class="file">Oma Kickstart-ROM…
+      <input id="rom-file" type="file" accept=".rom,.bin,application/octet-stream">
+    </label>
+    <button id="btn-aros" type="button" hidden>Takaisin AROSiin</button>
+  </div>
+
+  <section class="help">
+    <p><b>Pelaaminen:</b> napsauta ruutua, niin hiiri siirtyy Amigalle (Esc vapauttaa). Vasen nappi
+      kävelee ja valitsee verbin tai tavaran, oikea nappi tekee oletustoiminnon (Katso, Puhu, Kävele).
+      Del-näppäin lopettaa pelin.</p>
+    <p><b>Kickstart:</b> <span id="rom-name">AROS</span>. Oletuksena vapaa AROS-ROM. Jos sinulla on
+      oma Amiga 1200:n Kickstart 3.1 (40.068) -ROM-tiedosto (esim. Amiga Foreverista), valitse se
+      yllä: se muistetaan tässä selaimessa eikä lähde koneeltasi minnekään. Palvelimelle sen voi
+      laittaa tiedostoksi <code>rom/kick.rom</code>.</p>
+    <p class="credits">Emulaattori: <a href="https://github.com/naTmeg/ScriptedAmigaEmulator">Scripted
+      Amiga Emulator</a> (GPL-2, <a href="sae/LAHDE.txt">lähde</a>, <a href="sae/gpl-2.0.htm">lisenssi</a>) ·
+      ROM: <a href="https://aros.sourceforge.io/license.html">AROS</a> · Levykuva: <a href="mouho.adf">mouho.adf</a></p>
+  </section>
+</main>
+</body>
+</html>

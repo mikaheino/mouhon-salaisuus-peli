@@ -1,0 +1,5 @@
+Scripted Amiga Emulator (SAE), GNU General Public License v2 (gpl-2.0.htm).
+Tekijät: Rupert Hausberger ja SAE:n kehittäjät; perustuu WinUAE/UAE-emulaattoreihin.
+Lähdekoodi: https://github.com/naTmeg/ScriptedAmigaEmulator
+Kopioitu muuttamattomana versiosta: SAE (naTmeg/master) 8ebce7b8beb9ebe243e5ea7b5150b3f16f665303
+AROS-ROM (../rom/aros-*.bin): AROS Public License, https://aros.sourceforge.io/license.html
