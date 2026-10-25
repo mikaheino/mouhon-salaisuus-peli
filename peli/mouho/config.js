@@ -3,6 +3,7 @@
 // oivalluspisteet. Ladataan sisällön ensimmäisenä, koska ruudut ja kohtaukset nojaavat näihin.
 GAME.player = (x, y, dir, frame, st, sc, back) => jussi(x, y, dir, frame, st, sc, back);
 GAME.playerId = "jussi";
+GAME.playerName = "Jussi";          // kosketustilan valikko: "Katso Jussi"
 GAME.saveKey = "mouho-2026-save-v3";   // v3 (17.10.): uusi juoni, vanhat tallennukset eivät sovi
 GAME.endFormId = "mouho2027";          // Mouho 2027 -ilmoittautuminen pelin lopussa
 GAME.endFormApi = null;   // liiga-sovelluksen reitti; staattisessa nettiversiossa (tools/dist.mjs) null: ei lomaketta

@@ -27,7 +27,8 @@ function outLine(px, py) {
   return pool[OUT.n++ % pool.length].replace("{ruutu}", room().title.split(",")[0]);
 }
 // Musta alue = sivun tausta ja pelin tyhjät laatikot, ei napit, tavarat eikä kangas.
-const blackTarget = (el) => el === document.documentElement || el === document.body || ["game", "sentence", "ui", "verbs"].includes(el.id) || el.classList?.contains("hint");
+// Kosketustilassa vain sivun tausta: tavaroiden ja vihjerivin väliin osuva napautus ei vie pelaajaa ulos.
+const blackTarget = (el) => el === document.documentElement || el === document.body || (!TOUCH && (["game", "sentence", "ui", "verbs"].includes(el.id) || el.classList?.contains("hint")));
 document.addEventListener("click", (e) => {
   if (skip || busy || overlay || title || !room() || !blackTarget(e.target)) return;
   const px = e.clientX, py = e.clientY, R0 = cv.getBoundingClientRect();

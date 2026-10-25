@@ -78,6 +78,58 @@ canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; 
 #mouho2027 .cal { flex-wrap: wrap; gap: 8px; }
 #mouho2027 .cal a { padding: 4px 12px; border: 1px solid #fcd41c; color: #fcd41c; text-decoration: none; font: 18px VT323, monospace; }
 #mouho2027 .msg { color: #fc9c7c; min-height: 1em; }
+/* Kosketustila (backlog 13, engine/touch.js): toimintovalikko verbilistan tilalle, isommat napautuskohteet. */
+html:not(.touch) .hint .tch, html:not(.touch) .hint .rot, html.touch .hint .desk { display: none; }
+html.touch body { touch-action: manipulation; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  place-items: start center; padding: 10px 8px; }
+html.touch #verbs { display: none; }
+html.touch #ui { grid-template-columns: 1fr; min-height: 0; padding: 4px 0 8px; }
+html.touch #inv { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px; min-height: 58px; }
+html.touch #sentence { font-size: 20px; }
+html.touch #dialog { min-height: 0; gap: 0; font-size: 20px; }
+html.touch #dialog button { padding: 7px 4px; border-bottom: 1px solid #2c1c3c; line-height: 1.1; }
+html.touch .hint { font-size: 17px; }
+html.touch .hint .sys { display: block; margin-top: 6px; }
+html.touch .sys button { padding: 6px 6px; }
+html.touch .hint .rot { display: block; margin-top: 6px; color: #fcc81c; }
+html.touch .bubble { max-width: 66%; }
+html.touch .dim { position: fixed; z-index: 50; }
+html.touch #mouho2027 { max-height: 92dvh; font-size: 17px; }
+#tapback { position: fixed; inset: 0; z-index: 59; }
+#tapmenu { position: fixed; z-index: 60; background: #10104c; border: 2px solid #5cfcfc; box-shadow: 0 0 0 3px #000, 0 8px 22px #000c; padding: 6px 6px 8px; font-family: VT323, monospace; }
+#tapmenu .nm { color: #5cfcfc; font-size: 21px; text-align: center; padding: 0 4px 4px; max-width: 280px; }
+#tapmenu .vb { display: grid; grid-template-columns: repeat(3, minmax(78px, 1fr)); gap: 4px; }
+#tapmenu button { all: unset; cursor: pointer; text-align: center; padding: 8px 4px; font-size: 21px; color: #a8fca8; background: #1c3c1c; border: 1px solid #2c7c2c; }
+#tapmenu button.def { color: #10104c; background: #5cfc5c; border-color: #a8fca8; }
+#tapmenu button:active { filter: brightness(1.3); }
+#tapmenu[hidden], #tapback[hidden], #stage .edge[hidden] { display: none; }
+#stage .edge { all: unset; position: absolute; top: 50%; transform: translateY(-50%); width: 26px; height: 46px; display: grid; place-items: center; z-index: 3;
+  background: rgba(0,0,0,.55); color: #fcfc54; font-size: 30px; line-height: 1; border: 1px solid #fcfc5488; cursor: pointer; animation: nudge 1.6s ease-in-out infinite; }
+#stage .edge.vasen { left: 2px; } #stage .edge.oikea { right: 2px; }
+/* Vaaka-asento: kuva lähes koko korkeudelle, tavarat ohueksi riviksi alle, lauserivi kuvan päälle,
+   Vihje/Tallenna/Lataa/Musiikki valikkonapin taakse ja keskustelun vaihtoehdot kuvan päälle. */
+#mnu { display: none; }
+@media (orientation: landscape) {
+  html.touch { --sw: min(100vw, calc((100dvh - 44px) * 320 / 136)); }
+  html.touch body { padding: 0; display: block; }
+  html.touch #game { width: 100vw; height: 100vh; height: 100dvh; display: flex; flex-direction: column; align-items: center; }
+  html.touch #stage { width: var(--sw); flex: none; }
+  html.touch #sentence { position: absolute; top: 3px; right: calc((100vw - var(--sw)) / 2 + 4px); z-index: 4; text-align: right; height: auto; max-width: calc(var(--sw) * .5); padding: 0 8px;
+    font-size: 17px; background: rgba(0,0,12,.6); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html.touch #sentence:empty { display: none; }
+  html.touch #ui { width: var(--sw); height: 44px; padding: 3px 50px 3px 0; display: block; }
+  html.touch #inv { display: flex; height: 100%; min-height: 0; gap: 8px; padding: 1px 8px; overflow-x: auto; border-width: 1px; }
+  html.touch #inv button { height: 100%; flex: none; }
+  html.touch .hint { position: absolute; right: max(4px, calc((100vw - var(--sw)) / 2)); bottom: 3px; margin: 0; font-size: 18px; z-index: 7; }
+  html.touch .hint .tch, html.touch .hint .rot, html.touch #game.talking .hint { display: none; }
+  html.touch #mnu { all: unset; display: grid; place-items: center; width: 42px; height: 38px; color: #fcfc54; font-size: 26px; background: #1c1c6c; border: 1px solid #3c3cac; cursor: pointer; }
+  html.touch .hint .sys { display: none; }
+  html.touch .hint.open .sys { display: flex; flex-direction: column; align-items: stretch; position: absolute; right: 0; bottom: 44px; min-width: 190px; margin: 0;
+    background: #10104c; border: 2px solid #5cfcfc; box-shadow: 0 0 0 3px #000; padding: 4px 0; font-size: 22px; text-align: left; }
+  html.touch .hint.open .sys > * { padding: 6px 14px; } html.touch .hint.open .sys .dot { display: none; }
+  html.touch #dialog { position: absolute; left: 50%; transform: translateX(-50%); width: var(--sw); bottom: 0; z-index: 6; max-height: 62dvh; overflow-y: auto;
+    background: rgba(0,0,16,.88); border-top: 2px solid #5c2c7c; padding: 2px 10px 6px; }
+}
 </style>
 </head>
 <body>
@@ -86,8 +138,11 @@ canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; 
   <div id="sentence"></div>
   <div id="ui"><div id="verbs"></div><div id="inv"></div></div>
   <div id="dialog"></div>
-  <div class="hint">Valitse verbi, sitten kohde. Oikea painike = oletustoiminto. Esc tai klikkaus ohittaa repliikin.
-    <span class="sys"><span id="iq">Mouho-IQ 0 / 136</span> · <button id="hint">Vihje</button> · <button id="save">Tallenna</button> · <button id="load">Lataa</button> · <button id="musiikki">Musiikki</button></span></div>
+  <div class="hint"><span class="desk">Valitse verbi, sitten kohde. Oikea painike = oletustoiminto. Esc tai klikkaus ohittaa repliikin.</span>
+    <span class="tch">Napauta kohdetta tai tavaraa: valitse toiminto. Napauta maata: kävele. Napautus ohittaa repliikin.</span>
+    <span class="rot">Käännä puhelin vaakaan, niin kuva on isompi.</span>
+    <button id="mnu" aria-label="Valikko">☰</button>
+    <span class="sys"><span id="iq">Mouho-IQ 0 / 136</span><span class="dot"> · </span><button id="hint">Vihje</button><span class="dot"> · </span><button id="save">Tallenna</button><span class="dot"> · </span><button id="load">Lataa</button><span class="dot"> · </span><button id="musiikki">Musiikki</button></span></div>
 </div>
 <script src="engine/core.js"></script>
 <script src="engine/gfx.js"></script>
@@ -97,6 +152,7 @@ canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; 
 <script src="engine/music.js"></script>
 <script src="engine/page.js"></script>
 <script src="engine/input.js"></script>
+<script src="engine/touch.js"></script>
 <script src="engine/faces.js"></script>
 <script src="engine/dev.js"></script>
 <script src="mouho/config.js"></script>

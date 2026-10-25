@@ -16,7 +16,9 @@ function setSentence(target) {
 async function act(v, target) {
   if (typeof target === "string") {
     if (v === "Katso") return script(ITEMS[target].look);
-    if (ITEMS[target][v] && !first) return script(ITEMS[target][v]);     // esineen oma verbi (esim. Käytä kännykkä)
+    // Esineen oma verbi (Käytä kännykkä) heti, ellei esineelle ole käyttökohdetta: silloin se valitaan kuten muutkin
+    // ("Käytä kännykkä lokkeihin" oli mahdoton, 25.10.), ja saman esineen valinta uudestaan ajaa oman verbin.
+    if (ITEMS[target][v] && (first === target || (!first && !usable(target, v)))) { first = null; renderInv(); return script(ITEMS[target][v]); }
     if ((v === "Käytä" || v === "Anna") && !first) { first = target; renderInv(); setSentence(); return; }
     // Esine esineeseen (MI2:n tapaan "Käytä köysi koukkuun"): ITEMS.a["Käytä:b"] tai toisin päin.
     if (first && first !== target) { const a = first, f = ITEMS[target][`Käytä:${a}`] ?? ITEMS[a][`Käytä:${target}`]; first = null; renderInv();
@@ -35,6 +37,16 @@ async function act(v, target) {
   if (v !== "Kävele") return script(() => say(GAME.text.generic[v] || GAME.text.unknown));
 }
 
+// Onko esineelle käyttökohdetta näkyvissä: ruudun kohde tai toinen esine, jolla on "Käytä:esine" (tai Anna).
+function usable(k, v) {
+  if (v !== "Käytä" && v !== "Anna") return false;
+  if (room()?.spots.some((p) => !(p.hidden && p.hidden()) && (p[`${v}:${k}`] || (v === "Anna" && p.Anna)))) return true;
+  return v === "Käytä" && st.inv.some((o) => o !== k && (ITEMS[o][`Käytä:${k}`] || ITEMS[k][`Käytä:${o}`]));
+}
+// Katso pelaajaa itseään (MI2: "Look at Guybrush"): GAME.text.self vuorotellen
+const onSelf = (x, y, tol = 0) => Math.abs(x - st.x) < 7 * depth(st.y) + tol && y < st.y + tol && y > st.y - 46 * depth(st.y) - tol;
+function lookSelf() { const L = GAME.text.self[(GAME.selfN = ((GAME.selfN ?? -1) + 1)) % GAME.text.self.length]; verb = "Kävele"; renderVerbs(); return script(() => say(L)); }
+
 // ---------------------------------------------------------------- käyttöliittymä
 function stagePos(e) { const b = cv.getBoundingClientRect(); return [((e.clientX - b.left) / b.width) * W - camOff(), ((e.clientY - b.top) / b.height) * H]; }   // ruudun koordinaatit (kamera huomioitu)
 cv.addEventListener("mousemove", (e) => { if (busy || !room()) return; const [x, y] = stagePos(e); setSentence(spotsAt(x, y)); });
@@ -45,16 +57,15 @@ function click(e, right) {
   if (OUT.on) return comeBack(e, right);
   const [x, y] = stagePos(e), strip = stripOf(st.scene);
   if (strip && (x < 0 || x >= W)) { const n = strip[strip.indexOf(st.scene) + (x < 0 ? -1 : 1)]; if (n) return crossTo(n, x < 0 ? x + W : x - W, y); }   // naapuriruudun puolelle
-  // Katso pelaajaa itseään (MI2: "Look at Guybrush"): GAME.text.self vuorotellen
-  if (verb === "Katso" && !first && GAME.text.self?.length && Math.abs(x - st.x) < 7 * depth(st.y) && y < st.y && y > st.y - 46 * depth(st.y)) {
-    const L = GAME.text.self[(GAME.selfN = ((GAME.selfN ?? -1) + 1)) % GAME.text.self.length]; verb = "Kävele"; renderVerbs(); return script(() => say(L)); }
-  let o = spotsAt(x, y);
+  if (TOUCH && !right && !first && verb === "Kävele" && touchMenu(x, y, e)) return;     // kosketus: toimintovalikko (touch.js)
+  if (verb === "Katso" && !first && GAME.text.self?.length && onSelf(x, y)) return lookSelf();
+  let o = TOUCH ? spotNear(x, y) : spotsAt(x, y);
   if (o?.floor && verb === "Kävele" && !first && !right) o = null;   // lattiakohteelle (piano) kävellään klikattuun kohtaan
   if (o) { act(right && !first ? defVerb(o) : verb, o); verb = "Kävele"; renderVerbs(); }
   else { first = null; renderInv(); onArrive = null;
     // Klikkaus omien jalkojen kohdalle: hyppy paikallaan, jotta samaa lattiakosketinta voi
     // painaa kahdesti (koodissa 2006 on kaksi nollaa).
-    if (Math.hypot(x - st.x, y - st.y) < 7 && room().onStop) { st.hop = performance.now(); room().onStop(st.x, st.y); }
+    if (Math.hypot(x - st.x, y - st.y) < (TOUCH ? 11 : 7) && room().onStop) { st.hop = performance.now(); room().onStop(st.x, st.y); }
     else st.path = findPath(st.x, st.y, x, y); }
 }
 cv.addEventListener("click", (e) => click(e, false));
@@ -81,6 +92,8 @@ function outline(c, col) {
 function renderInv() { $inv.replaceChildren(...st.inv.map((k) => { const b = document.createElement("button"); b.title = ITEMS[k].name; b.setAttribute("aria-label", ITEMS[k].name);
   const img = document.createElement("img"); img.src = icon(k).toDataURL(); img.alt = ""; b.append(img);
   if (first === k) b.className = "sel"; else if (newItem === k) b.className = "new"; else if (ITEMS[k].nudge?.()) b.className = "nudge";
-  b.onclick = () => { if (busy) return; if (first && first !== k) return script(() => say("Ne eivät sovi yhteen.")); act(verb === "Kävele" ? "Katso" : verb, k); if (verb !== "Käytä" && verb !== "Anna") { verb = "Kävele"; renderVerbs(); } };
+  b.onclick = () => { if (busy) return; if (TOUCH && touchItem(k, b)) return;
+    // Esine esineeseen: act yhdistää (ITEMS.a["Käytä:b"]) tai antaa oletusvastauksen (aiemmin aina "Ne eivät sovi yhteen", 25.10.).
+    act(verb === "Kävele" ? "Katso" : verb, k); if ((verb !== "Käytä" && verb !== "Anna") || !first) { verb = "Kävele"; renderVerbs(); } };
   b.oncontextmenu = (e) => { e.preventDefault(); if (!busy) act("Katso", k); };
   b.onmouseenter = () => setSentence(k); return b; })); }

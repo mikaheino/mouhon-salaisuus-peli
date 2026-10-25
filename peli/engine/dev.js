@@ -45,6 +45,20 @@ if (TEST) {
     async valitse(n) { const b = $dlg.children[n - 1]; if (!$game.classList.contains("talking") || !b) return { virhe: "Ei vaihtoehtoja", ...view() };
       await new Promise((r) => setTimeout(r, 380)); b.click(); return settle(); },
     async vihje() { hint?.(); return settle(); },
+    // Kosketustesti (tools/mobile.mjs, backlog 13): odota rauhoittumista ja kerro, mihin kohtaan sivulla napautetaan.
+    odota: () => settle(),
+    kohta(nimi) { const R = cv.getBoundingClientRect(), k = R.width / W, at = (x, y) => ({ x: R.left + (x + camOff()) * k, y: R.top + y * k });
+      const m = /^numero (\d)$/.exec(nimi);
+      if (m) { const A = QUIZ_AREA[st.scene], y = (A.y0 + A.y1) / 2, [a, b] = A.edges(y); return { ...at(a + (KEYS.indexOf(m[1]) + .5) / 10 * (b - a), y), lattia: true }; }
+      const p = findSpot(nimi);
+      // Napautuskohta: lähin keskipistettä oleva piste, jossa spotsAt osuu juuri tähän kohteeseen (päällekkäiset kohteet).
+      if (p) { let cx = p.x + p.w / 2, cy = p.y + p.h / 2, bd = 1e9;
+        for (let y = p.y + 1; y < p.y + p.h; y += 2) for (let x = p.x + 1; x < p.x + p.w; x += 2) { const d = Math.hypot(x - (p.x + p.w / 2), y - (p.y + p.h / 2));
+          if (d < bd && spotsAt(x, y) === p) { bd = d; cx = x; cy = y; } }
+        const sx = cx + camOff(), pos = at(cx, cy);
+        return { ...pos, exit: !!p.exit, floor: !!p.floor, ohi: sx < 4 ? -1 : sx > W - 4 ? 1 : 0, jalat: at(st.x, st.y) }; }
+      const i = findItem(nimi); if (i) { const b = $inv.children[st.inv.indexOf(i)].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, esine: true }; }
+      return null; },
   };
 }
 
