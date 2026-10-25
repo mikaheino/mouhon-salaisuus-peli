@@ -437,7 +437,9 @@ async function readAd() {
     await say("Toiminnanjohtaja! Turnauksia, jäseniä ja tarjoilua. Olen tehnyt näitä kaikkia."); });
   await say("Tai ainakin katsonut vierestä.");
   await say("Mutta hakijoita on varmasti satoja. Miten minä erotun joukosta? Tarvitsen neuvoa joltakulta viisaalta.");
-  await say("Soitan Jouko Myrrälle, vanhalle valmentajalleni. Hänen numeronsa on kännykässä pikavalinnassa ykkösenä.");
+  // Puhelu heti (käyttäjä 25.10.: pelaaja ei tiennyt soittaa itse, ja peli jäi jumiin).
+  await say("Soitan Jouko Myrrälle, vanhalle valmentajalleni. Pikavalinta ykkönen.");
+  await callMyrra();
 }
 // Taustakohtaus intron aikana: Saarni ja maskotti autolta toimistoon, seteleitä lentää.
 // Vuorotellen (17.10.: "menee päällekkäin puheruutujen kanssa"): Jussi puhuu ensin, he
@@ -497,6 +499,8 @@ async function raimoCameo() {
 // jäsen; "Lyhyesti virsi kaunis" (f.lyhyesti) on myöhemmin taululiitukaksintaistelun vastaus.
 async function jalonenArrives() {
   if (st.flags.jalonenHere || st.flags.jalonenIn) return;
+  // Puhelu parkkipaikalla (käyttäjä 25.10.: Jalonen ilmestyi ruudun ulkopuolelle): ensin takaisin hallin eteen.
+  if (st.scene === "parkki") { await say("Takaisin hallin eteen. Siellä on enemmän tilaa ajatella."); await walkTo(W - 1, st.y); go("koti", 1, true, st.y); await walkTo(70, 128); }
   Object.assign(JALONEN, { x: 62, y: 88 }); st.flags.jalonenHere = true;
   await say("Parkkipaikan poikki kävelee Kari Jalonen, Leijonien entinen päävalmentaja.", "muu");
   await walkActor(JALONEN, 134, 88, 1);
