@@ -92,7 +92,8 @@ function frame(t) {
   if (s.post) s.post(t);
   g.restore();
   outFrame(t, dt);
-  g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, 0, g.measureText(s.title).width + 8, 11); g.fillStyle = "#a8a8a8"; g.font = "10px VT323, monospace"; g.fillText(s.title, 4, 8);
+  g.font = "10px VT323, monospace"; g.textAlign = "left";        // ennen mittausta: edellinen piirto voi jättää keskityksen (nimen alku katosi)
+  g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, 0, g.measureText(s.title).width + 8, 11); g.fillStyle = "#a8a8a8"; g.fillText(s.title, 4, 8);
   fxEnd(t);
   requestAnimationFrame(frame);
 }
