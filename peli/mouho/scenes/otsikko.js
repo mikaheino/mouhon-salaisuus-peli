@@ -5,7 +5,8 @@
 // Kappadokia ilmapalloineen, kaareva oranssi-keltainen logo "JUSSI MARKKANEN", alle "ja MOUHON
 // SALAISUUS", Mouhon kilpi hehkuu jalustalla kuin idoli ja Jussi fedorassa oikeassa reunassa.
 const CHIMNEYS = [[16, 10, 36, "#a8603c"], [44, 7, 24, "#b46c44"], [72, 6, 16, "#b87048"], [166, 5, 15, "#b87048"], [190, 8, 30, "#a05a3c"], [216, 11, 42, "#b06844"]];
-const BALLOONS = [[30, 82, 4, "#d8302c", "#fcd41c"], [176, 50, 5, "#f0a830", "#1c1c1c"], [152, 80, 3, "#3c6cc8", "#fcfcfc"]];
+// Pallot vapaassa taivaassa logon ja Jussin välissä sekä horisontissa (11/2026: eivät jää logon taakse).
+const BALLOONS = [[220, 46, 7, "#d8302c", "#fcd41c"], [200, 74, 4, "#f0a830", "#1c1c1c"], [88, 84, 3, "#3c6cc8", "#fcfcfc"]];
 // Taivas, kaksi ajelehtivaa pilvikerrosta (ylempi hitaampi) ja läpinäkyvä etuala (23.10.).
 const TITLE_CLOUDS = [
   { c: "#f8c8b0", v: 3, list: [[190, 7, 130], [60, 5, 110]] },
@@ -76,9 +77,6 @@ function titleFg() {
   r(142, 129, 8, 3, "#2c2c2c"); r(142, 129, 8, 1, "#e8d8b8"); r(148, 130, 2, 2, "#1c1c1c");
   for (const [rx, ry] of [[8, 2.5], [6, 2], [4, 1.2]]) for (let a = 0; a < 6.3; a += .08) px(Math.round(164 + Math.cos(a) * rx), Math.round(131 + Math.sin(a) * ry), a < 3.1 ? "#8c5c30" : "#5c3418");
   lineC(172, 131, 180, 127, "#6c4424"); r(180, 125, 2, 3, "#3c2414"); px(180, 125, "#a4703c");
-  // etualan iso pallo ja sen ditheröity varjo maassa
-  for (let j = -1; j <= 1; j++) for (let i = -8; i <= 8; i++) if (i * i / 64 + j * j < 1.1 && bay(24 + i, 104 + j) < .5) px(24 + i, 104 + j, "#4a3458");
-  balloon(22, 55, 8, "#c83c4c", "#fcd41c");
   // kivijalusta kilvelle: valaistu yläreuna, violetti sivuvarjo
   r(96, 110, 38, 4, "#8c7c6c"); r(96, 110, 38, 1, "#f0d8b0"); r(96, 111, 38, 1, "#c8b494"); r(101, 114, 28, 14, "#7c6c5c"); r(101, 114, 3, 14, "#9c8c7c");
   r(124, 114, 5, 14, "#7a5878"); dither(122, 114, 2, 14, "#7c6c5c", "#7a5878"); r(94, 128, 42, 4, "#6c5c4c"); r(94, 128, 42, 1, "#b4a08c"); r(130, 128, 6, 4, "#7a5878");
@@ -183,23 +181,75 @@ function titleJussi(t) {
   const B = PIXFACES.jussi.bust, bimg = faceCache["bust|jussi"] ??= renderPix(B, {}), face = faceImg("jussi", "portrait", { blink: t % 4200 < 130, over: true });
   const bx = W - bimg.width - 4, by = H - bimg.height + 2, hx = bx + B.head_at[0] + 32, hy = by + B.head_at[1];
   g.drawImage(bimg, bx, by); g.drawImage(face, bx + B.head_at[0], hy);
-  fillPoly([[hx - 23, hy + 20], [hx - 20, hy - 1], [hx - 8, hy - 5], [hx, hy - 1], [hx + 8, hy - 5], [hx + 20, hy - 1], [hx + 23, hy + 20]], "#8c5c30");
-  fillPoly([[hx - 20, hy], [hx - 8, hy - 4], [hx - 6, hy + 18], [hx - 21, hy + 18]], "#a4703c"); r(hx - 23, hy + 12, 46, 5, "#3c2414");
-  g.fillStyle = "#6c4424"; g.beginPath(); g.ellipse(hx, hy + 21, 38, 5, 0, 0, 7); g.fill(); g.fillStyle = "#4c2c14"; g.fillRect(hx - 38, hy + 21, 76, 1);
-  g.fillStyle = "rgba(20,8,0,.35)"; g.fillRect(hx - 28, hy + 24, 56, 4);                         // lierin varjo otsalla
+  titleFedora(hx, hy);
+}
+// Fedora pikseleinä: lieri ensin (takareuna jää kupun alle), kupussa keskipainauma ja sivulommot,
+// valo tulee vasemmalta auringonlaskusta: kirkas reunavalo vasemmalla, oikea kylki varjossa.
+function titleFedora(hx, hy) {
+  const L = "#b8844c", M = "#8c5c30", D = "#6c4424", DD = "#4c2c14", RIM = "#f8b45c";
+  for (let dy = -4; dy <= 4; dy++) { const hw = Math.round(40 * Math.sqrt(1 - (dy / 4.6) ** 2)), y = hy + 20 + dy;
+    for (let dx = -hw; dx <= hw; dx++) { const edge = Math.abs(dx) >= hw - 1;
+      px(hx + dx, y, dy >= 3 ? DD : edge ? (dx < 0 ? RIM : DD) : dy < -1 ? (dx < -8 ? L : M) : dx < -12 ? M : D); } }
+  for (let y = hy; y <= hy + 17; y++) { const u = (y - hy) / 17, hw = Math.round(16 + u * 6);
+    const top = (dx) => hy + 1 + (Math.abs(dx) < 3 ? 1 : 0) + (Math.abs(dx) > 13 ? Math.abs(dx) - 13 : 0) - (Math.abs(dx) > 5 && Math.abs(dx) < 12 ? 1 : 0);
+    for (let dx = -hw; dx <= hw; dx++) { if (y < top(dx)) continue;
+      let c = dx < -hw + 2 ? RIM : dx < -6 ? L : dx < 8 ? M : dx < hw - 3 ? D : DD;
+      if (Math.abs(dx) <= 1 && y < hy + 6) c = dx < 0 ? D : L;                                          // keskipainauma
+      if ((dx === -11 || dx === 11) && y > hy + 3 && y < hy + 8) c = dx < 0 ? M : DD;                    // sivulommot
+      if (y === top(dx)) c = dx < 0 ? RIM : dx < 8 ? L : M;
+      px(hx + dx, y, c); } }
+  r(hx - 22, hy + 11, 45, 5, "#2c1a0c"); r(hx - 22, hy + 11, 45, 1, "#4c3018"); r(hx - 22, hy + 11, 2, 5, "#6c4424");   // nauha
+  r(hx + 14, hy + 11, 3, 5, "#3c2414"); px(hx + 15, hy + 13, "#a4703c");                                       // nauhan solmu
+  g.fillStyle = "rgba(20,8,0,.3)"; g.fillRect(hx - 26, hy + 25, 52, 3);                                    // lierin varjo otsalla
+}
+// Valokiilat laskevasta auringosta taivaalle, hitaasti huojuen (piirretään ennen etualaa).
+function titleRays(t) {
+  g.save(); g.globalCompositeOperation = "lighter";
+  for (let k = 0; k < 9; k++) { const a = -Math.PI + .25 + k * .33 + Math.sin(t / 5000 + k) * .04, w = .05 + (k % 3) * .025, R = 260;
+    const al = .05 + .03 * Math.sin(t / 1700 + k * 2);
+    const gr = g.createRadialGradient(150, 80, 8, 150, 80, R); gr.addColorStop(0, `rgba(255,214,150,${al})`); gr.addColorStop(1, "rgba(255,214,150,0)");
+    g.fillStyle = gr; g.beginPath(); g.moveTo(150, 80); g.lineTo(150 + Math.cos(a - w) * R, 80 + Math.sin(a - w) * R); g.lineTo(150 + Math.cos(a + w) * R, 80 + Math.sin(a + w) * R); g.fill(); }
+  g.restore();
+}
+// Kipinät soihdusta ja kultapöly kilven hehkussa, nousevat ja sammuvat.
+function titleMotes(t) {
+  for (let k = 0; k < 6; k++) { const u = ((t / 1400 + k * .37) % 1), x = Math.round(25 + Math.sin(t / 300 + k * 2) * 2 + u * 6), y = Math.round(100 - u * 26);
+    if (u < .8) px(x, y, u < .3 ? "#fff0a0" : u < .6 ? "#ff9a30" : "#b03a20"); }
+  for (let k = 0; k < 10; k++) { const u = ((t / 3200 + k * .113) % 1), x = Math.round(115 + Math.sin(t / 900 + k * 1.9) * (10 + k % 4 * 4)), y = Math.round(108 - u * 46);
+    if ((Math.floor(t / 160) + k) % 5) px(x, y, u < .5 ? "#fcf0a0" : "#f8b45c"); }
+}
+// Logon kiiltoviiva: vino valojuova pyyhkäisee kirjainten yli muutaman sekunnin välein.
+let titleT0 = null, titleShine = null;
+function shinyLogo(logo, t) {
+  const p = (t % 5200) / 1100; if (p > 1) return logo;
+  const c = titleShine ??= Object.assign(document.createElement("canvas"), { width: logo.width, height: logo.height }), x = c.getContext("2d");
+  x.globalCompositeOperation = "source-over"; x.clearRect(0, 0, c.width, c.height); x.drawImage(logo, 0, 0);
+  x.globalCompositeOperation = "source-atop"; const cx = -80 + p * (c.width + 160);
+  const gr = x.createLinearGradient(cx - 40, 0, cx + 40, 0); gr.addColorStop(0, "rgba(255,250,220,0)"); gr.addColorStop(.5, "rgba(255,250,220,.75)"); gr.addColorStop(1, "rgba(255,250,220,0)");
+  x.fillStyle = gr; x.beginPath(); x.moveTo(cx - 60, c.height); x.lineTo(cx - 20, 0); x.lineTo(cx + 60, 0); x.lineTo(cx + 20, c.height); x.fill();
+  return c;
 }
 function drawTitle(t) {
   g.drawImage(paintBg("title_sky", titleSky), 0, 0);
   TITLE_CLOUDS.forEach((L, k) => drift(`title_cloud${k}`, L.v, () => puffBand(L.list, L.c, "#d8a4b4"), t));
+  titleRays(t);
   g.drawImage(paintBg("title_fg", titleFg), 0, 0);
   for (const [x, y, rad, c1, c2] of BALLOONS) balloon(x + Math.sin(t / 9000 + x) * 6, y + Math.sin(t / 1300 + x) * 1.5, rad, c1, c2);
   titleLife(t);
   mouhoShield(115, 75, t);
+  titleMotes(t);
   titleJussi(t);
+  // reunojen varjostus kehystää kuvan kuin elokuvajulisteen
+  const vg = g.createRadialGradient(W / 2, H * .55, 90, W / 2, H * .55, 210); vg.addColorStop(0, "rgba(28,10,30,0)"); vg.addColorStop(1, "rgba(28,10,30,.55)");
+  g.fillStyle = vg; g.fillRect(0, 0, W, H);
   const logo = buildTitleLogo();
-  if (logo) g.drawImage(logo, 0, 0, W, 80);
+  if (logo) { titleT0 ??= t; const k = NOFX ? 1 : Math.min(1, (t - titleT0) / 900), e = 1 - (1 - k) ** 3, sc = 1.25 - .25 * e;   // logo iskee paikalleen
+    g.save(); g.globalAlpha = e; g.translate(W * .45, 40); g.scale(sc, sc); g.drawImage(shinyLogo(logo, t), -W * .45, -40, W, 80); g.restore(); }
   else { g.textAlign = "center"; g.font = "30px VT323, monospace"; g.fillStyle = "#fcc81c"; g.fillText("JUSSI MARKKANEN", 130, 30); g.font = "14px VT323, monospace"; g.fillText("ja Mouhon salaisuus", 130, 50); }
-  g.textAlign = "center"; g.font = "10px VT323, monospace";
-  if (Math.floor(t / 600) % 2) { g.fillStyle = "#1c1c1c"; g.fillText("Klikkaa aloittaaksesi", 116, 134); g.fillStyle = "#fcfc54"; g.fillText("Klikkaa aloittaaksesi", 115, 133); }
-  g.textAlign = "left";
+  // aloituskehote: ääriviivoitettu Bangers, sykkii pehmeästi vilkkumisen sijaan
+  const msg = TOUCH ? "KOSKETA ALOITTAAKSESI" : "KLIKKAA ALOITTAAKSESI", pulse = .5 + .5 * Math.sin(t / 380);
+  g.save(); g.textAlign = "center"; g.font = logo ? "10px Bangers" : "11px VT323, monospace"; g.lineJoin = "round";
+  if (logo) g.letterSpacing = "1px";
+  g.globalAlpha = .55 + .45 * pulse; g.lineWidth = 3; g.strokeStyle = "#1c0c04"; g.strokeText(msg, 112, 133);
+  g.fillStyle = pulse > .5 ? "#fcf07c" : "#fcc83c"; g.fillText(msg, 112, 133); g.restore();
 }
